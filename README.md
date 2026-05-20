@@ -147,4 +147,8 @@ npm run dev
 
 Open `http://localhost:3000`. Optional assistant uses any OpenAI-compatible API (`LLM_BASE_URL`, `LLM_MODEL`). **PDF export** captures the live filtered executive-summary block via `html2canvas` + `jsPDF`.
 
+## Live Deployment
+
+Production site: https://workforce-pulse-seven.vercel.app/
+
 **Key code paths:** `src/lib/data/normalize.ts` (cleaning), `src/lib/data/analytics.ts` (join + metrics), `src/lib/data/constants.ts` (recoverability factors), `src/components/dashboard/` (UI).
