@@ -182,6 +182,7 @@ export function Dashboard({ initialData }: { initialData: AnalyticsResponse }) {
     afterFilterScrollRef.current = null;
 
     if (intent.kind === "section") {
+      compensateFilterBarGrowth("auto");
       scrollToSection(intent.section, "auto");
     } else {
       compensateFilterBarGrowth("auto");
@@ -192,8 +193,14 @@ export function Dashboard({ initialData }: { initialData: AnalyticsResponse }) {
     if (loading || !resyncScrollAfterLoadRef.current) return;
     const section = resyncScrollAfterLoadRef.current;
     resyncScrollAfterLoadRef.current = null;
-    requestAnimationFrame(() => scrollToSection(section, "auto"));
-  }, [loading, scrollToSection]);
+    // Wait for filtered content and filter chrome to finish laying out before one final scroll.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        compensateFilterBarGrowth("auto");
+        scrollToSection(section, "auto");
+      });
+    });
+  }, [loading, scrollToSection, compensateFilterBarGrowth]);
 
   const navigateTo = useCallback(
     (section: NavSection) => {
@@ -259,9 +266,12 @@ export function Dashboard({ initialData }: { initialData: AnalyticsResponse }) {
     const willRefetch = buildQuery({ ...filters, taskCategory }) !== query;
     updateFilter("taskCategory", taskCategory);
     setActiveSection("employees");
-    queueAfterFilterScroll({ kind: "section", section: "employees" });
     if (willRefetch) {
+      // Defer scroll until analytics refetch finishes so sections above don't shift the target.
       resyncScrollAfterLoadRef.current = "employees";
+      queueAfterFilterScroll({ kind: "compensate" });
+    } else {
+      queueAfterFilterScroll({ kind: "section", section: "employees" });
     }
   }
 
